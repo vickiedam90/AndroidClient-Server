@@ -50,14 +50,15 @@ public class MyActivity extends Activity {
                     MyClientTask myClientTask = new MyClientTask(
                             editTextAddress.getText().toString(),
                             Integer.parseInt(editTextPort.getText().toString()));
-                    myClientTask.execute();
+                    new Thread(myClientTask).start();
                 }};
 
-    public class MyClientTask extends AsyncTask<Void, Void, Void> {
+    public class MyClientTask implements Runnable {
 
         String dstAddress;
         int dstPort;
         String response = "";
+        Socket socket = null;
 
         MyClientTask(String addr, int port){
             dstAddress = addr;
@@ -65,13 +66,9 @@ public class MyActivity extends Activity {
         }
 
         @Override
-        protected Void doInBackground(Void... arg0) {
-
-            Socket socket = null;
-
+        public void run() {
             try {
                 socket = new Socket(dstAddress, dstPort);
-
                 ByteArrayOutputStream byteArrayOutputStream =
                         new ByteArrayOutputStream(1024);
                 byte[] buffer = new byte[1024];
@@ -106,15 +103,14 @@ public class MyActivity extends Activity {
                     }
                 }
             }
-            return null;
-        }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    textResponse.setText(response);
+                }
+            });
 
-        @Override
-        protected void onPostExecute(Void result) {
-            textResponse.setText(response);
-            super.onPostExecute(result);
         }
-
     }
 
 }
